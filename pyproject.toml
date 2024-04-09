@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "src"
+version = "0.1.0"
+description = ""
+authors = [""]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-socketio = {extras = ["asyncio-client"], version = "^5.11.2"}
+loguru = "^0.7.2"
+pygame = "^2.5.2"
+pyserial = "^3.5"
+
+[tool.poetry.scripts]
+server = "src.server:main"
+client = "src.client:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
