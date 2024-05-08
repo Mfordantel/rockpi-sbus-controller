@@ -10,7 +10,7 @@ import loguru
 
 sio = socketio.AsyncServer(async_mode="aiohttp")
 
-uart = serial.Serial("/dev/ttyS2", baudrate=115200)
+uart = serial.Serial("/dev/ttyS2", baudrate=100000, timeout=0, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_TWO, bytesize=serial.EIGHTBITS)
 
 def generate_sbus_packet(channels):
     sbus_packet = bytearray(25)
@@ -32,15 +32,18 @@ def generate_sbus_packet(channels):
 
     return bytes(sbus_packet)
 
+def invert_sbus_packet(sbus_packet):
+    return bytes(~b & 0xFF for b in sbus_packet)
+
 @sio.on(EVENT_XY)
 async def xy_event(sid, raw_data: bytes):
     data = StructXY.model_validate(raw_data)
-    #loguru.logger.info(f"Got data: {raw_data} ({data})")
     channels = [data.roll, data.pitch, data.throttle, data.yaw]
     sbus_packet = generate_sbus_packet(channels)
-    loguru.logger.info(f"Generated SBUS packet: {list(sbus_packet)} ({data})")
+    inverted_sbus_packet = invert_sbus_packet(sbus_packet)
+    loguru.logger.info(f"Generated inverted SBUS packet: {list(inverted_sbus_packet)} ({data})")
 
-    uart.write(sbus_packet)
+    uart.write(inverted_sbus_packet)
 
 @sio.on("connect")
 async def on_connect(sid, *args):
